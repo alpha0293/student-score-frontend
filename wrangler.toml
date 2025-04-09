@@ -1,5 +1,0 @@
-name = "student-score-frontend"
-compatibility_date = "2025-04-09"
-
-[site]
-bucket = "./public"
