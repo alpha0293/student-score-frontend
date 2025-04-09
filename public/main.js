@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
     resultBox.textContent = "Loading...";
 
     try {
-      const response = await fetch("https://jsonplaceholder.typicode.com/posts/1")
+      const response = await fetch("https://jsonplaceholder.typicode.com/posts")
       if (!response.ok) throw new Error("API error!");
 
       const data = await response.json();
