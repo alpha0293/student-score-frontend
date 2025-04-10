@@ -1,65 +1,93 @@
+<!DOCTYPE html>
+<html lang="vi">
 <head>
   <meta charset="UTF-8" />
   <title>Worker API Demo</title>
-
+  <style>
+    body { font-family: Arial; margin: 2em; }
+    #actions { display: none; margin-top: 20px; }
+    #result { white-space: pre-wrap; background: #f0f0f0; padding: 10px; margin-top: 10px; }
+  </style>
   <!-- Toastr -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.css"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js"></script>
 </head>
 <body>
-  <!-- giao diện và form -->
+  <h2>Demo Gọi API qua Cloudflare Worker</h2>
+
+  <div id="login-section">
+    <input type="text" id="username" placeholder="Tên đăng nhập" />
+    <input type="password" id="password" placeholder="Mật khẩu" />
+    <button onclick="login()">Đăng nhập</button>
+  </div>
+
+  <div id="actions">
+    <button onclick="getProfile()">Lấy thông tin cá nhân</button>
+    <button onclick="logout()">Đăng xuất</button>
+  </div>
+
+  <div id="result"></div>
 
   <script>
-    window.onload = function () {
-      const API_BASE = 'https://score-backend.hoangngocthach-cntt.workers.dev';
+    const API_BASE = 'https://score-backend.hoangngocthach-cntt.workers.dev';
 
-      if (localStorage.getItem('token')) {
+    window.onload = () => {
+      const token = localStorage.getItem('token');
+      if (token) {
         document.getElementById('login-section').style.display = 'none';
         document.getElementById('actions').style.display = 'block';
       }
+    };
 
-      window.login = async function () {
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
+    async function login() {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
 
+      try {
         const res = await fetch(`${API_BASE}/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, password })
         });
-
         const data = await res.json();
+
         if (res.ok) {
           localStorage.setItem('token', data.token);
           toastr.success('Đăng nhập thành công!');
           setTimeout(() => location.reload(), 1000);
         } else {
-          toastr.error('Đăng nhập thất bại: ' + data.error);
+          toastr.error('Sai thông tin đăng nhập');
         }
+      } catch (err) {
+        toastr.error('Lỗi kết nối');
       }
+    }
 
-      window.getProfile = async function () {
+    async function getProfile() {
+      try {
         const res = await fetch(`${API_BASE}/profile`, {
-          method: 'GET',
           headers: {
-            'Authorization': 'Bearer ' + localStorage.getItem('token')
+            Authorization: 'Bearer ' + localStorage.getItem('token')
           }
         });
-
         const data = await res.json();
+
         if (res.ok) {
-          toastr.success('Lấy thông tin thành công!');
+          toastr.success('Lấy profile thành công!');
           document.getElementById('result').innerText = JSON.stringify(data, null, 2);
         } else {
-          toastr.error('Không lấy được profile: ' + data.error);
+          toastr.error('Không xác thực hoặc token sai!');
         }
+      } catch (err) {
+        toastr.error('Lỗi khi gọi API');
       }
+    }
 
-      window.logout = function () {
-        localStorage.removeItem('token');
-        toastr.info('Đã đăng xuất');
-        setTimeout(() => location.reload(), 500);
-      }
+    function logout() {
+      localStorage.removeItem('token');
+      toastr.info('Đã đăng xuất');
+      setTimeout(() => location.reload(), 500);
     }
   </script>
 </body>
+</html>
