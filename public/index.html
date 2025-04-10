@@ -1,78 +1,65 @@
-<!DOCTYPE html>
-<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>Worker API Demo</title>
 
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet"/>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+  <!-- Toastr -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js"></script>
 </head>
 <body>
-  <h1>Demo Worker API</h1>
-
-  <div id="login-section">
-    <input type="text" id="username" placeholder="Username" />
-    <input type="password" id="password" placeholder="Password" />
-    <button onclick="login()">Đăng nhập</button>
-  </div>
-
-  <div id="actions" style="display: none;">
-    <button onclick="getProfile()">Lấy thông tin</button>
-    <button onclick="logout()">Đăng xuất</button>
-  </div>
-
-  <pre id="result"></pre>
+  <!-- giao diện và form -->
 
   <script>
-    const API_BASE = 'https://score-backend.hoangngocthach-cntt.workers.dev';
+    window.onload = function () {
+      const API_BASE = 'https://score-backend.hoangngocthach-cntt.workers.dev';
 
-    if (localStorage.getItem('token')) {
-      document.getElementById('login-section').style.display = 'none';
-      document.getElementById('actions').style.display = 'block';
-    }
-
-    async function login() {
-      const username = document.getElementById('username').value;
-      const password = document.getElementById('password').value;
-
-      const res = await fetch(`${API_BASE}/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        localStorage.setItem('token', data.token);
-        toastr.success('Đăng nhập thành công!');
-        setTimeout(() => location.reload(), 1000);
-      } else {
-        toastr.error('Đăng nhập thất bại: ' + data.error);
+      if (localStorage.getItem('token')) {
+        document.getElementById('login-section').style.display = 'none';
+        document.getElementById('actions').style.display = 'block';
       }
-    }
 
-    async function getProfile() {
-      const res = await fetch(`${API_BASE}/profile`, {
-        method: 'GET',
-        headers: {
-          'Authorization': 'Bearer ' + localStorage.getItem('token')
+      window.login = async function () {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        const res = await fetch(`${API_BASE}/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          localStorage.setItem('token', data.token);
+          toastr.success('Đăng nhập thành công!');
+          setTimeout(() => location.reload(), 1000);
+        } else {
+          toastr.error('Đăng nhập thất bại: ' + data.error);
         }
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        toastr.success('Lấy thông tin thành công!');
-        document.getElementById('result').innerText = JSON.stringify(data, null, 2);
-      } else {
-        toastr.error('Không lấy được profile: ' + data.error);
       }
-    }
 
-    function logout() {
-      localStorage.removeItem('token');
-      toastr.info('Đã đăng xuất');
-      setTimeout(() => location.reload(), 500);
+      window.getProfile = async function () {
+        const res = await fetch(`${API_BASE}/profile`, {
+          method: 'GET',
+          headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
+          }
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          toastr.success('Lấy thông tin thành công!');
+          document.getElementById('result').innerText = JSON.stringify(data, null, 2);
+        } else {
+          toastr.error('Không lấy được profile: ' + data.error);
+        }
+      }
+
+      window.logout = function () {
+        localStorage.removeItem('token');
+        toastr.info('Đã đăng xuất');
+        setTimeout(() => location.reload(), 500);
+      }
     }
   </script>
 </body>
-</html>
