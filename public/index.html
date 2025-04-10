@@ -3,60 +3,55 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Login & Profile Demo</title>
-  <style>
-    body { font-family: sans-serif; padding: 2rem; max-width: 500px; margin: auto; }
-    input, button { padding: 0.5rem; margin: 0.5rem 0; width: 100%; }
-    #profile { margin-top: 1rem; background: #f4f4f4; padding: 1rem; border-radius: 5px; }
-  </style>
+  <title>Worker Auth Demo</title>
 </head>
 <body>
-  <h2>Đăng nhập</h2>
-  <input id="username" placeholder="Tên đăng nhập" />
-  <input id="password" placeholder="Mật khẩu" type="password" />
-  <button onclick="login()">Đăng nhập</button>
+  <h2>Login</h2>
+  <input id="username" placeholder="Username" />
+  <input id="password" placeholder="Password" type="password" />
+  <button onclick="login()">Login</button>
 
-  <div id="profile" hidden>
-    <h3>Thông tin người dùng</h3>
-    <pre id="profileData"></pre>
-  </div>
+  <h2>Actions</h2>
+  <button onclick="getProfile()">Get Profile</button>
+
+  <pre id="output"></pre>
 
   <script>
-    const workerURL = 'https://score-backend.hoangngocthach-cntt.workers.dev'; // 🔁 đổi thành URL thực tế của bạn
+    const apiBase = 'https://score-backend.hoangngocthach-cntt.workers.dev';
+    let token = '';
 
     async function login() {
       const username = document.getElementById('username').value;
       const password = document.getElementById('password').value;
 
-      const res = await fetch(workerURL + '/login', {
+      const res = await fetch(`${apiBase}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        localStorage.setItem('token', data.token);
-        alert("Đăng nhập thành công!");
-        loadProfile();
-      } else {
-        alert("Sai thông tin đăng nhập!");
+      const data = await res.json();
+      document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+
+      if (data.token) {
+        token = data.token;
       }
     }
 
-    async function loadProfile() {
-      const token = localStorage.getItem('token');
-      const res = await fetch(workerURL + '/profile', {
-        headers: { 'Authorization': 'Bearer ' + token }
+    async function getProfile() {
+      if (!token) {
+        alert('Please login first!');
+        return;
+      }
+
+      const res = await fetch(`${apiBase}/profile`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        document.getElementById('profileData').textContent = JSON.stringify(data, null, 2);
-        document.getElementById('profile').hidden = false;
-      } else {
-        alert("Không thể tải thông tin người dùng.");
-      }
+      const data = await res.json();
+      document.getElementById('output').textContent = JSON.stringify(data, null, 2);
     }
   </script>
 </body>
