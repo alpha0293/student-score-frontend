@@ -1,94 +1,63 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Danh sách sinh viên</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login & Profile Demo</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      padding: 2rem;
-    }
-    h1 {
-      text-align: center;
-    }
-    .student-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 1rem;
-      margin-top: 2rem;
-    }
-    .card {
-      background: white;
-      padding: 1rem;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      transition: 0.3s;
-      cursor: pointer;
-    }
-    .card:hover {
-      transform: translateY(-5px);
-    }
-    .avatar {
-      width: 100%;
-      border-radius: 10px;
-      margin-bottom: 1rem;
-    }
-    .detail {
-      margin-top: 2rem;
-      background: white;
-      padding: 1rem;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
+    body { font-family: sans-serif; padding: 2rem; max-width: 500px; margin: auto; }
+    input, button { padding: 0.5rem; margin: 0.5rem 0; width: 100%; }
+    #profile { margin-top: 1rem; background: #f4f4f4; padding: 1rem; border-radius: 5px; }
   </style>
 </head>
 <body>
-  <h1>Danh sách sinh viên</h1>
-  <div class="student-list" id="studentList"></div>
-  <div class="detail" id="detail" style="display:none;"></div>
+  <h2>Đăng nhập</h2>
+  <input id="username" placeholder="Tên đăng nhập" />
+  <input id="password" placeholder="Mật khẩu" type="password" />
+  <button onclick="login()">Đăng nhập</button>
+
+  <div id="profile" hidden>
+    <h3>Thông tin người dùng</h3>
+    <pre id="profileData"></pre>
+  </div>
 
   <script>
-    async function fetchStudents() {
-      const res = await fetch('https://dummyjson.com/users');
-      const data = await res.json();
-      return data.users;
-    }
+    const workerURL = 'https://score-backend.hoangngocthach-cntt.workers.dev/'; // 🔁 đổi thành URL thực tế của bạn
 
-    function renderStudents(students) {
-      const list = document.getElementById('studentList');
-      list.innerHTML = '';
-      students.forEach(user => {
-        const div = document.createElement('div');
-        div.className = 'card';
-        div.innerHTML = `
-          <img src="${user.image}" alt="avatar" class="avatar">
-          <h3>${user.firstName} ${user.lastName}</h3>
-          <p><strong>Email:</strong> ${user.email}</p>
-          <p><strong>Trường:</strong> ${user.university}</p>
-        `;
-        div.onclick = () => showDetail(user);
-        list.appendChild(div);
+    async function login() {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      const res = await fetch(workerURL + '/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
       });
+
+      if (res.ok) {
+        const data = await res.json();
+        localStorage.setItem('token', data.token);
+        alert("Đăng nhập thành công!");
+        loadProfile();
+      } else {
+        alert("Sai thông tin đăng nhập!");
+      }
     }
 
-    function showDetail(user) {
-      const detail = document.getElementById('detail');
-      detail.style.display = 'block';
-      detail.innerHTML = `
-        <h2>Thông tin chi tiết</h2>
-        <p><strong>Họ tên:</strong> ${user.firstName} ${user.lastName}</p>
-        <p><strong>Email:</strong> ${user.email}</p>
-        <p><strong>Số điện thoại:</strong> ${user.phone}</p>
-        <p><strong>Giới tính:</strong> ${user.gender}</p>
-        <p><strong>Trường:</strong> ${user.university}</p>
-        <p><strong>Username:</strong> ${user.username}</p>
-        <img src="${user.image}" alt="avatar" class="avatar">
-      `;
-    }
+    async function loadProfile() {
+      const token = localStorage.getItem('token');
+      const res = await fetch(workerURL + '/profile', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
 
-    fetchStudents().then(renderStudents);
+      if (res.ok) {
+        const data = await res.json();
+        document.getElementById('profileData').textContent = JSON.stringify(data, null, 2);
+        document.getElementById('profile').hidden = false;
+      } else {
+        alert("Không thể tải thông tin người dùng.");
+      }
+    }
   </script>
 </body>
 </html>
