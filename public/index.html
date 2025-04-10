@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <title>Worker API Demo</title>
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 </head>
 <body>
   <h1>Demo Worker API</h1>
@@ -34,18 +37,17 @@
 
       const res = await fetch(`${API_BASE}/login`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
       });
 
       const data = await res.json();
       if (res.ok) {
         localStorage.setItem('token', data.token);
-        location.reload();
+        toastr.success('Đăng nhập thành công!');
+        setTimeout(() => location.reload(), 1000);
       } else {
-        document.getElementById('result').innerText = 'Đăng nhập thất bại: ' + data.error;
+        toastr.error('Đăng nhập thất bại: ' + data.error);
       }
     }
 
@@ -59,15 +61,17 @@
 
       const data = await res.json();
       if (res.ok) {
+        toastr.success('Lấy thông tin thành công!');
         document.getElementById('result').innerText = JSON.stringify(data, null, 2);
       } else {
-        document.getElementById('result').innerText = 'Không lấy được profile: ' + data.error;
+        toastr.error('Không lấy được profile: ' + data.error);
       }
     }
 
     function logout() {
       localStorage.removeItem('token');
-      location.reload();
+      toastr.info('Đã đăng xuất');
+      setTimeout(() => location.reload(), 500);
     }
   </script>
 </body>
