@@ -28,6 +28,8 @@
     <h3>Xin chào!</h3>
     <button onclick="getProfile()">Lấy thông tin</button>
     <button onclick="logout()">Đăng xuất</button>
+    <button onclick="showToken()">Xem token</button>
+
   </div>
 
   <div id="output"></div>
@@ -67,6 +69,11 @@
         document.getElementById('output').innerText = data.error || 'Đăng nhập thất bại';
       }
     }
+    function showToken() {
+  const token = localStorage.getItem('token');
+  document.getElementById('output').innerText = 'Token hiện tại: ' + token;
+}
+
 
     async function getProfile() {
       const token = localStorage.getItem('token');
