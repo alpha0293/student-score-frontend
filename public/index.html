@@ -1,20 +1,51 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Demo Login + Worker</title>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <title>Login Demo</title>
+  <style>
+    body {
+      font-family: Arial;
+      max-width: 400px;
+      margin: 50px auto;
+    }
+    .hidden { display: none; }
+    input { margin: 5px 0; padding: 5px; width: 100%; }
+    button { margin: 5px 0; padding: 8px; width: 100%; }
+    #output { margin-top: 10px; white-space: pre-wrap; }
+  </style>
 </head>
 <body>
-  <h2>Đăng nhập</h2>
-  <input type="text" id="username" placeholder="Tên đăng nhập"><br>
-  <input type="password" id="password" placeholder="Mật khẩu"><br>
-  <button onclick="login()">Đăng nhập</button>
-  <button onclick="getProfile()">Lấy thông tin</button>
-  <button onclick="logout()">Đăng xuất</button>
+
+  <div id="login-form">
+    <h3>Đăng nhập</h3>
+    <input type="text" id="username" placeholder="Tên đăng nhập">
+    <input type="password" id="password" placeholder="Mật khẩu">
+    <button onclick="login()">Login</button>
+  </div>
+
+  <div id="after-login" class="hidden">
+    <h3>Xin chào!</h3>
+    <button onclick="getProfile()">Lấy thông tin</button>
+    <button onclick="logout()">Đăng xuất</button>
+  </div>
+
+  <div id="output"></div>
 
   <script>
     const API_URL = 'https://score-backend.hoangngocthach-cntt.workers.dev';
+
+    function show(id) {
+      document.getElementById('login-form').classList.add('hidden');
+      document.getElementById('after-login').classList.add('hidden');
+      document.getElementById(id).classList.remove('hidden');
+    }
+
+    function checkLogin() {
+      const token = localStorage.getItem('token');
+      if (token) show('after-login');
+      else show('login-form');
+    }
 
     async function login() {
       const username = document.getElementById('username').value;
@@ -30,63 +61,37 @@
 
       if (res.ok) {
         localStorage.setItem('token', data.token);
-        Swal.fire({
-          icon: 'success',
-          title: 'Đăng nhập thành công!',
-          showConfirmButton: false,
-          timer: 1500
-        });
+        show('after-login');
+        document.getElementById('output').innerText = 'Đăng nhập thành công!';
       } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Lỗi đăng nhập!',
-          text: data.error || 'Có lỗi xảy ra'
-        });
+        document.getElementById('output').innerText = data.error || 'Đăng nhập thất bại';
       }
     }
 
     async function getProfile() {
       const token = localStorage.getItem('token');
-      if (!token) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Bạn chưa đăng nhập!'
-        });
-        return;
-      }
-
       const res = await fetch(`${API_URL}/profile`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+        headers: { 'Authorization': 'Bearer ' + token }
       });
 
       const data = await res.json();
 
       if (res.ok) {
-        Swal.fire({
-          icon: 'info',
-          title: 'Thông tin người dùng',
-          html: `<strong>Tên:</strong> ${data.name}<br><strong>Vai trò:</strong> ${data.role}`
-        });
+        document.getElementById('output').innerText = JSON.stringify(data, null, 2);
       } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Không xác thực!',
-          text: data.error
-        });
+        document.getElementById('output').innerText = data.error || 'Lỗi xác thực';
+        logout(); // tự động logout nếu token sai
       }
     }
 
     function logout() {
       localStorage.removeItem('token');
-      Swal.fire({
-        icon: 'success',
-        title: 'Đã đăng xuất!',
-        timer: 1200,
-        showConfirmButton: false
-      });
+      show('login-form');
+      document.getElementById('output').innerText = 'Đã đăng xuất';
     }
+
+    checkLogin();
   </script>
+
 </body>
 </html>
